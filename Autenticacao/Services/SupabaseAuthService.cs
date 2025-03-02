@@ -31,26 +31,38 @@ namespace Autenticacao.Services
         {
             try
             {
-                Console.WriteLine($"Tentando registrar usuário: {email}");
+                Console.WriteLine($"🔹 Tentando registrar usuário: {email}");
 
+                // Faz a chamada ao Supabase
                 var response = await _supabase.Auth.SignUp(email, password, new SignUpOptions());
 
+                // Verifica se a resposta do Supabase está correta
                 if (response?.User?.Id == null)
                 {
-                    Console.WriteLine("Erro ao registrar usuário: Resposta nula ou inválida.");
+                    Console.WriteLine("⚠️ ERRO AO REGISTRAR USUÁRIO!");
+                    Console.WriteLine($"🔹 Resposta JSON do Supabase: {System.Text.Json.JsonSerializer.Serialize(response)}");
                     return null;
                 }
 
-                Console.WriteLine($"Usuário registrado com sucesso! ID: {response.User.Id}");
+                Console.WriteLine($"✅ Usuário registrado com sucesso! ID: {response.User.Id}");
                 return response.User.Id;
+            }
+            catch (Supabase.Gotrue.Exceptions.GotrueException gotrueEx)
+            {
+                Console.WriteLine("❌ ERRO NO SUPABASE:");
+                Console.WriteLine($"🔴 Código: {gotrueEx.GetType().Name}");
+                Console.WriteLine($"🔴 Mensagem: {gotrueEx.Message}");
+                return null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao registrar usuário no Supabase: {ex.Message}");
-                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                Console.WriteLine("❌ ERRO GERAL NO REGISTRO:");
+                Console.WriteLine($"🔴 Mensagem: {ex.Message}");
+                Console.WriteLine($"🔴 StackTrace: {ex.StackTrace}");
                 return null;
             }
         }
+
         public async Task<string> LoginAsync(string email, string password)
         {
             try
